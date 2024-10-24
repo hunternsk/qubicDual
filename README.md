@@ -2,7 +2,7 @@
 
 ### Command line args:
 
--fs Show flight sheets in farm (interactive only)
+-fs Show flight sheets in farm
 
 ### Configuration:
 
