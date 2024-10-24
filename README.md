@@ -1,5 +1,9 @@
 ## HiveOS qubic dual mining autopilot
 
+### Command line args:
+
+-fs Show flight sheets in farm (interactive only)
+
 ### Configuration:
 
 .env file
