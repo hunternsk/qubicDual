@@ -1,6 +1,6 @@
 package hiveos
 
-const baseUrl = "https://api2.hiveos.farm/api/v2"
+const baseUrl = "https://the.hiveos.farm/api/v2"
 
 type HiveOS struct {
 	farmID      string
