@@ -19,6 +19,31 @@ const (
 )
 
 func main() {
+	args := os.Args[1:]
+	if len(args) > 0 {
+		switch arg := args[0]; arg {
+		case "-fs":
+			accessToken := promptUser("Access Token")
+			farmId := promptUser("Farm ID")
+			hiveos := hiveos.New(farmId, accessToken)
+
+			fses, err := hiveos.GetFses()
+			if err != nil {
+				fmt.Println("GetFses", err)
+				os.Exit(1)
+			}
+			fmt.Printf("ID | Coins | Name\n")
+			for _, fs := range fses.Data {
+				var coins []string
+				for _, item := range fs.Items {
+					coins = append(coins, item.Coin)
+				}
+				fmt.Printf("%d | %s | %s\n", fs.ID, strings.Join(coins, ","), fs.Name)
+			}
+			os.Exit(0)
+		}
+	}
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
