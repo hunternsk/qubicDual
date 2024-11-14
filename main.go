@@ -100,9 +100,9 @@ func main() {
 					}
 				}
 
-				if !w2.Stats.Online {
+				/* if !w2.Stats.Online {
 					continue
-				}
+				} */
 				workers.Store(w2.ID, farm.WorkerType{
 					Name: w2.Name,
 					FsId: w2.FlightSheet.ID,
@@ -118,32 +118,30 @@ func main() {
 			if workers.Len() == 0 {
 				continue
 			}
+
+			setFsId := qubicFsId
+			workerIds := []int{}
 			idle, err := getQubicEpochChallengeIdle()
 			if err == nil {
+				if idle {
+					setFsId = idleFsId
+				}
 				for id, worker := range workers.GetAll() {
-					if idle && worker.FsId != idleFsId {
-						fmt.Println("Setting Idle FS", idleFsId, "for", worker.Name)
-						result, err := hiveos.SetWorkerFs(id, idleFsId)
-						if err != nil {
-							time.Sleep(time.Second * 5)
-							break
-						}
-						if result {
-							workers.SetFs(id, idleFsId)
-						}
-						time.Sleep(time.Millisecond * 500)
+					if worker.FsId != setFsId {
+						workerIds = append(workerIds, id)
 					}
-					if !idle && worker.FsId != qubicFsId {
-						fmt.Println("Setting Qubic FS", qubicFsId, "for", worker.Name)
-						result, err := hiveos.SetWorkerFs(id, qubicFsId)
-						if err != nil {
-							time.Sleep(time.Second * 5)
-							break
+
+				}
+				if len(workerIds) > 0 {
+					result, err := hiveos.SetWorkersData(map[string]interface{}{"fs_id": setFsId}, workerIds)
+					if err != nil {
+						time.Sleep(time.Second * 5)
+						break
+					}
+					if result {
+						for _, id := range workerIds {
+							workers.SetFs(id, setFsId)
 						}
-						if result {
-							workers.SetFs(id, qubicFsId)
-						}
-						time.Sleep(time.Millisecond * 500)
 					}
 				}
 
