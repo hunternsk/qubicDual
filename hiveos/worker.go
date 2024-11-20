@@ -59,7 +59,7 @@ func (h *HiveOS) SetWorkersData(data map[string]interface{}, workerIds []int) (b
 		fmt.Println("req", err)
 		return false, err
 	}
-	fmt.Println("Change req:", req)
+	fmt.Println("Change req payload:", fmt.Sprintf("%v", req.Body))
 	req.Header.Set("Authorization", "Bearer "+h.accessToken)
 	req.Header.Set("Content-Type", "application/json")
 
