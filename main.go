@@ -143,8 +143,10 @@ func main() {
 							workers.SetFs(id, setFsId)
 						}
 					}
+					time.Sleep(time.Second * 60)
+					_, _ = hiveos.CleanWorkersMessages(workerIds, []string{"success"})
+					
 				}
-
 			}
 			time.Sleep(time.Second * 5)
 		}
