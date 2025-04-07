@@ -1,0 +1,26 @@
+name: build-go-binary
+
+on:
+  release:
+    types: [created] # Indicates that it is triggered when a new Release is created
+
+jobs:
+  build-go-binary:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows] #S ystems that need to be packaged
+        goarch: [amd64] # A packaged schema is required
+        exclude: # Exclude certain platforms and architectures
+          - goarch: arm64
+            goos: windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: wangyoucao577/go-release-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} # A default variable that allows adding files to Release
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: 1.21 # You can specify the version of Golang to use for compilation
+          binary_name: "qubicDual" # You can specify the name of the binary
+          extra_files: README.md .env.example # Extra files that need to be included
