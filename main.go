@@ -19,6 +19,31 @@ const (
 )
 
 func main() {
+	args := os.Args[1:]
+	if len(args) > 0 {
+		switch arg := args[0]; arg {
+		case "-fs":
+			accessToken := promptUser("Access Token")
+			farmId := promptUser("Farm ID")
+			hiveos := hiveos.New(farmId, accessToken)
+
+			fses, err := hiveos.GetFses()
+			if err != nil {
+				fmt.Println("GetFses", err)
+				os.Exit(1)
+			}
+			fmt.Printf("ID | Coins | Name\n")
+			for _, fs := range fses.Data {
+				var coins []string
+				for _, item := range fs.Items {
+					coins = append(coins, item.Coin)
+				}
+				fmt.Printf("%d | %s | %s\n", fs.ID, strings.Join(coins, ","), fs.Name)
+			}
+			os.Exit(0)
+		}
+	}
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -75,9 +100,9 @@ func main() {
 					}
 				}
 
-				if !w2.Stats.Online {
+				/* if !w2.Stats.Online {
 					continue
-				}
+				} */
 				workers.Store(w2.ID, farm.WorkerType{
 					Name: w2.Name,
 					FsId: w2.FlightSheet.ID,
@@ -93,35 +118,35 @@ func main() {
 			if workers.Len() == 0 {
 				continue
 			}
+
+			setFsId := qubicFsId
+			workerIds := []int{}
 			idle, err := getQubicEpochChallengeIdle()
 			if err == nil {
-				for id, worker := range workers.GetAll() {
-					if idle && worker.FsId != idleFsId {
-						fmt.Println("Setting Idle FS", idleFsId, "for", worker.Name)
-						result, err := hiveos.SetWorkerFs(id, idleFsId)
-						if err != nil {
-							time.Sleep(time.Second * 5)
-							break
-						}
-						if result {
-							workers.SetFs(id, idleFsId)
-						}
-						time.Sleep(time.Millisecond * 500)
-					}
-					if !idle && worker.FsId != qubicFsId {
-						fmt.Println("Setting Qubic FS", qubicFsId, "for", worker.Name)
-						result, err := hiveos.SetWorkerFs(id, qubicFsId)
-						if err != nil {
-							time.Sleep(time.Second * 5)
-							break
-						}
-						if result {
-							workers.SetFs(id, qubicFsId)
-						}
-						time.Sleep(time.Millisecond * 500)
-					}
+				if idle {
+					setFsId = idleFsId
 				}
+				for id, worker := range workers.GetAll() {
+					if worker.FsId != setFsId {
+						workerIds = append(workerIds, id)
+					}
 
+				}
+				if len(workerIds) > 0 {
+					result, err := hiveos.SetWorkersData(map[string]interface{}{"fs_id": setFsId}, workerIds)
+					if err != nil {
+						time.Sleep(time.Second * 5)
+						break
+					}
+					if result {
+						for _, id := range workerIds {
+							workers.SetFs(id, setFsId)
+						}
+					}
+					time.Sleep(time.Second * 60)
+					_, _ = hiveos.CleanWorkersMessages(workerIds, []string{"success"})
+					
+				}
 			}
 			time.Sleep(time.Second * 5)
 		}
