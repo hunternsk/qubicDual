@@ -10,7 +10,3 @@
     IDLEFSID=WhatToStartWhenQubicIsIdle
     EXCLUDEWORKERS=*
     INCLUDEWORKERS=CaseSensitiveToo
-
-### Building
-
-    go build
